@@ -22,7 +22,7 @@ if __name__ =="__main__":
 
     str_write = "I4\r\n"
     ser.write(str_write.encode("ascii"))
-    str_read = ser.read_until(expected=serial.CRLF)
-    if is_instance(str_read, bytes):
+    str_read = ser.read_until(expected=serial.CR+serial.LF)
+    if isinstance(str_read, bytes):
         str_read = str_read.decode("ascii")
     print(str_read)
