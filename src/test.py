@@ -6,7 +6,7 @@ if __name__ =="__main__":
     ser = None
     try:
         ser = serial.Serial(
-            port="COM16",
+            port="/dev/ttyUSB0",
             baudrate=2400,
             bytesize=serial.SEVENBITS,
             parity=serial.PARITY_EVEN,
@@ -19,10 +19,14 @@ if __name__ =="__main__":
     except serial.SerialException:
         print("Cannot find device on given port")
         sys.exit(2)
-
-    str_write = "I4\r\n"
+    #str_write = "SIR\r\n"
+    str_write = "SIR\r\n"
     ser.write(str_write.encode("ascii"))
-    str_read = ser.read_until(expected=serial.CR+serial.LF)
-    if isinstance(str_read, bytes):
-        str_read = str_read.decode("ascii")
-    print(str_read)
+    while True:
+        #komanda = raw_input("vnesi komando: ")
+
+
+        str_read = ser.read_until(serial.CR+serial.LF)
+        if isinstance(str_read, bytes):
+            str_read = str_read.decode("ascii")
+        print(str_read)
