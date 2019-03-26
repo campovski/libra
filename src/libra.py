@@ -1,6 +1,6 @@
 import serial
 import sys
-import multiprocessing
+import threading
 import queue
 import datetime
 import subprocess
@@ -12,9 +12,6 @@ CONT_READ = "SIR\r\n".encode('ascii')
 STABLE = "S"
 UNSTABLE = "SD"
 
-# Custom signals
-STOP_PROCESS = "stop"  # put in appropriate queue to stop the process
-
 # Files
 COUNTING_FILE = "counting.csv"
 ALL_FILE = "data.csv"
@@ -25,14 +22,17 @@ class Libra():
     ser = None  # serial to communicate with libra
     mutex = None  # lock for serial port availability
 
-    thread_cont_read = None  # thread for constant weight printing
-    thread_special = None  # thread for writing and reading special commands
+    thread_cont_read = None  # thread for constant reading
     thread_writefile = None  # thread for writing data to file, should always be running
 
     queue_cont_read = None  # queue for storing SIR weight data
-    queue_backup = None  # same as above but only GUI can empty
+    queue_backup = None  # same as queue_cont_read but only GUI can empty
     queue_special = None  # used for anything else
     queue_writefile = None  # queue for writing data to file
+
+    # Custom signals
+    STOP_COUNTING = False
+    STOP_MAIN = False
 
 
     def __init__(self, port=None, baudrate=None, bytesize=None, parity=None, \
@@ -43,8 +43,9 @@ class Libra():
         self.queue_cont_read = queue.Queue()
         self.queue_backup = queue.Queue()
         self.queue_writefile = queue.Queue()
-        self.thread_writefile = multiprocessing.Process(
+        self.thread_writefile = threading.Thread(
             target=self.writefile,
+            name="writefile",
             daemon=True
         )
 
@@ -68,7 +69,7 @@ class Libra():
             stopbits=stopbits,
             xonxoff=xonxoff
         )
-        self.mutex = multiprocessing.Lock()
+        self.mutex = threading.Lock()
         self.read_weight_cont()
 
 
@@ -76,51 +77,53 @@ class Libra():
         assert self.ser is not None, "[read_weight_cont] Not connected to serial port"
 
         if self.thread_cont_read is None:
-            self.thread_cont_read = multiprocessing.Process(
+            self.thread_cont_read = threading.Thread(
             target=read_cont,
+            name="cont_read",
             daemon=True
         )
 
         self.mutex.acquire()
         self.thread_cont_read.start()  # when killing this process, release lock
+        print("thread_cont_read started!")
 
 
     def read_cont(self):
-        f = open("measurements.csv", mode="a+")
+        def process_read(string):
+            string = string.decode('ascii').strip().split()
+            return [datetime.datetime.now()] + string + self.get_weather_data()
+
         self.ser.write(CONT_READ)
         while True:
+            if self.STOP_MAIN:
+                break
             str_read = self.ser.read_until(serial.CR+serial.LF)
-            print(str_read.strip())
-            str_read = str_read.decode('ascii').split()
+            str_read = self.process_read(str_read)
             self.queue_cont_read.put(str_read)
             self.queue_backup.put(str_read)
-            if str_read[0] == STABLE:
-                str_read = [datetime.datetime.now()] + str_read
-                # str_read.append(get_weather_data())
-                self.queue_writefile.put(str_read)
+            if str_read[1] == STABLE:
+                self.queue_writefile.put(str_read)        
 
 
-    def counting_objects(self, force=False):
+    def counting_objects(self):
         print("[counting_objects] Waiting for stable zero ...")
         while True:
             m = self.queue_cont_read.get()
-            if m[0] == STABLE and float(m[1]) < 0.1:
+            if m[1] == STABLE and float(m[2]) < 0.1:
                 break
 
         print("[counting_objects] Stable zero acquired, start weighting ...")
         objects = []
         new = False
         while True:
-            m = self.queue_cont_read.get()
-            if m == STOP_PROCESS:
+            if self.STOP_COUNTING or self.STOP_MAIN:
                 break
-            if m[0] == STABLE and new and float(m[1]) > 0.1:
+            m = self.queue_cont_read.get()
+            if m[1] == STABLE and new and float(m[2]) > 0.1:
                 new = False
-                m = [datetime.datetime.now()] + m
-                # m.append(get_weather_data())
                 objects.append(m)
                 print('\a')  # beep sound
-            elif m[0] == UNSTABLE:
+            elif m[1] == UNSTABLE:
                 new = True
 
         try:
@@ -142,13 +145,49 @@ class Libra():
     def writefile(self):
         f = open(ALL_FILE, "a+")
         while True:
-            m = queue_writefile.get()
-            if m == STOP_PROCESS:  # should only stop at the stop of execution
+            if self.STOP_MAIN:
                 break
+            m = queue_writefile.get()
             str_filewrite = ",".join(m) + "\n"
             if f.write(str_filewrite) != len(str_filewrite):
                 print("[writefile] error writing to file")
         f.close()
+
+    
+    def get_weather_data(self):
+        return ["not_yet_implemented"]
+
+
+if __name__ == "__main__":
+    libra = Libra(
+        port="/dev/ttyUSB0",
+        baudrate=2400,
+        bytesize=serial.SEVENBITS,
+        parity=serial.PARITY_EVEN,
+        stopbits=serial.STOPBITS_ONE,
+        xonxoff=True
+    )
+
+    for thread in threading.enumerate():
+        print("[main] Thread: " + thread.name)
+
+    x = input("Press key to select option: ").strip()
+
+    try:
+        if x == "c":
+            libra.counting_objects()
+        while True:
+            pass
+    except KeyboardInterrupt:
+        libra.STOP_MAIN = True
+        libra.thread_cont_read.join()
+        print("[main] thread *cont_read* joined!")
+        libra.thread_writefile.join()
+        print("[main] thread *writefile* joined")
+
+
+
+
 
 
 
