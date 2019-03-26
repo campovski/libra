@@ -50,34 +50,24 @@
      <string>g</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>740</y>
-      <width>541</width>
-      <height>51</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="save">
     <property name="geometry">
      <rect>
-      <x>590</x>
+      <x>220</x>
       <y>750</y>
       <width>99</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Shrani kot...</string>
     </property>
    </widget>
    <widget class="QPushButton" name="set_to_value">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>190</y>
+      <x>160</x>
+      <y>230</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -157,8 +147,8 @@
    <widget class="QLineEdit" name="tara">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>180</y>
+      <x>10</x>
+      <y>220</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -167,8 +157,8 @@
    <widget class="QPushButton" name="set_to_zero">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>200</y>
+      <x>280</x>
+      <y>240</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -206,8 +196,8 @@
    <widget class="QLabel" name="static_tara">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>160</y>
+      <x>160</x>
+      <y>200</y>
       <width>68</width>
       <height>17</height>
      </rect>
@@ -232,14 +222,14 @@
    <widget class="QLabel" name="static_save">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>710</y>
-      <width>121</width>
+      <x>50</x>
+      <y>760</y>
+      <width>131</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Shrani v datoteko</string>
+     <string>Shrani v datoteko:</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="command">
@@ -320,7 +310,7 @@
    <widget class="QLabel" name="static_temp">
     <property name="geometry">
      <rect>
-      <x>610</x>
+      <x>590</x>
       <y>50</y>
       <width>68</width>
       <height>17</height>
@@ -421,9 +411,9 @@
    <widget class="QLabel" name="static_teza_enega">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>190</x>
       <y>510</y>
-      <width>68</width>
+      <width>81</width>
       <height>17</height>
      </rect>
     </property>
@@ -457,7 +447,7 @@
      <string>kalibracija</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="kalibration">
+   <widget class="QPushButton" name="calibration">
     <property name="geometry">
      <rect>
       <x>170</x>
@@ -470,7 +460,7 @@
      <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="kalibration_mass">
+   <widget class="QLineEdit" name="calibration_mass">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -478,6 +468,55 @@
       <width>121</width>
       <height>41</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="refresh_env_data">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>80</y>
+      <width>99</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>refresh</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="return_data">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>440</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="static_teza_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>130</y>
+      <width>91</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Odzivni čas</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="status_2">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>130</y>
+      <width>68</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
     </property>
    </widget>
   </widget>
@@ -496,23 +535,40 @@
  <resources/>
  <connections>
   <connection>
-   <sender>set_to_value</sender>
+   <sender>refresh_env_data</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>imesvojefunkcije()</slot>
+   <slot>updateEnvData()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>621</x>
-     <y>314</y>
+     <x>690</x>
+     <y>128</y>
     </hint>
     <hint type="destinationlabel">
-     <x>700</x>
-     <y>359</y>
+     <x>722</x>
+     <y>168</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>save</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveToFile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>644</x>
+     <y>797</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>704</x>
+     <y>841</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>imesvojefunkcije()</slot>
+  <slot>updateEnvData()</slot>
+  <slot>saveToFile()</slot>
  </slots>
 </ui>
