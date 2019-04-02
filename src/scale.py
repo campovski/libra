@@ -1,9 +1,9 @@
 from PyQt4 import QtGui, QtCore
+from libra import Libra
 from scale_qt4 import MainWindow
 import sys
 import signal
-import requests
-
+import serial
 
 def close(*args):
 	QtGui.QApplication.quit()
@@ -11,37 +11,31 @@ def close(*args):
 signal.signal(signal.SIGINT, close)
 
 class Window(MainWindow):
-	def __init__(self):
+	def __init__(self, libra):
+		self.libra = libra
 		MainWindow.__init__(self)
+		self.timer_display = QtCore.QTimer()
+		QtCore.QObject.connect(self.timer_display, QtCore.SIGNAL('timeout()'), self.updateDisplay)
 
-	def getEnvData(self, p="Zračni tlak:  ", h="Vlažnost zraka: ", t="LJUBLJANA: "):
-		data = requests.get("http://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_LJUBL-ANA_BEZIGRAD_latest.rss")
-		env_data = {}
-		i = data.text.find(p)
-		env_data["pressure"] = data.text[i+len(p):i+len(p)+4] + " mbar"
-
-		i = data.text.find(h)
-		env_data["humidity"] = data.text[i+len(h):i+len(h)+2] + " %"
-
-		i = data.text.find(t)
-		env_data["temperature"] = data.text[i+len(t):i+len(t)+2] + " °C"
-
-		return env_data
+		self.timer_display.start(1)  # 2 seconds
 
 	def updateEnvData(self):
-		env_data = self.getEnvData()
+		env_data = self.libra.getEnvData()
 		self.temp.setText(env_data["temperature"])
 		self.humidity.setText(env_data["humidity"])
 		self.tlak.setText(env_data["pressure"])
 
-	def updateDisplay(self, mass):
-		self.mass.setText(mass)
+	def updateDisplay(self):
+		data = self.libra.queue_backup.get()
+		self.mass.display(data[2])
+		self.status.setText(data[1])
 
 	def setStatus(self,status):
 		self.status.setText(status)
 
 	def findSerial(self):
-		pass
+		print(list(serial.tools.list_ports.comports()))
+
 
 	def connectSerial(self):
 		pass
@@ -70,7 +64,14 @@ class Window(MainWindow):
 
 def runGui():
 	app = QtGui.QApplication(sys.argv)
-	window = Window()
+	window = Window(Libra(
+        port="/dev/ttyUSB0",
+        baudrate=2400,
+        bytesize=serial.SEVENBITS,
+        parity=serial.PARITY_EVEN,
+        stopbits=serial.STOPBITS_ONE,
+        xonxoff=True
+    ))
 	window.show()
 
 	# app.exec_()

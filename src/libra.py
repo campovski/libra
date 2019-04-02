@@ -1,9 +1,11 @@
 import serial
-import sys
+#3import sys
 import threading
 import queue
 import datetime
 import subprocess
+import requests
+
 
 # Commands
 CONT_READ = "SIR\r\n".encode('ascii')
@@ -26,7 +28,7 @@ class Libra():
     thread_writefile = None  # thread for writing data to file, should always be running
 
     queue_cont_read = None  # queue for storing SIR weight data
-    queue_backup = None  # same as queue_cont_read but only GUI can empty
+    queue_backup = queue.Queue()  # same as queue_cont_read but only GUI can empty
     queue_special = None  # used for anything else
     queue_writefile = None  # queue for writing data to file
 
@@ -35,8 +37,7 @@ class Libra():
     STOP_MAIN = False
 
 
-    def __init__(self, port=None, baudrate=None, bytesize=None, parity=None, \
-                 stopbits=None, xonxoff=None):
+    def __init__(self, port=None, baudrate=None, bytesize=None, parity=None, stopbits=None, xonxoff=None):
         if port is not None:
             self.open_serial(port, baudrate, bytesize, parity, stopbits, xonxoff)
 
@@ -49,6 +50,20 @@ class Libra():
             daemon=True
         )
 
+    def getEnvData(self, p="Zračni tlak:  ", h="Vlažnost zraka: ", t="LJUBLJANA: "):
+        data = requests.get(
+            "http://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_LJUBL-ANA_BEZIGRAD_latest.rss")
+        env_data = {}
+        i = data.text.find(p)
+        env_data["pressure"] = data.text[i + len(p):i + len(p) + 4] + " mbar"
+
+        i = data.text.find(h)
+        env_data["humidity"] = data.text[i + len(h):i + len(h) + 2] + " %"
+
+        i = data.text.find(t)
+        env_data["temperature"] = data.text[i + len(t):i + len(t) + 2] + " °C"
+
+        return env_data
 
     def __str__(self):
         print("Libra on port {0} with following configuration:\n\
@@ -78,7 +93,7 @@ class Libra():
 
         if self.thread_cont_read is None:
             self.thread_cont_read = threading.Thread(
-            target=read_cont,
+            target=self.read_cont,
             name="cont_read",
             daemon=True
         )
@@ -88,11 +103,11 @@ class Libra():
         print("thread_cont_read started!")
 
 
-    def read_cont(self):
-        def process_read(string):
-            string = string.decode('ascii').strip().split()
-            return [datetime.datetime.now()] + string + self.get_weather_data()
+    def process_read(self, string):
+        string = string.decode('ascii').strip().split()
+        return [datetime.datetime.now()] + string #+ self.getEnvData()
 
+    def read_cont(self):
         self.ser.write(CONT_READ)
         while True:
             if self.STOP_MAIN:
@@ -102,7 +117,7 @@ class Libra():
             self.queue_cont_read.put(str_read)
             self.queue_backup.put(str_read)
             if str_read[1] == STABLE:
-                self.queue_writefile.put(str_read)        
+                self.queue_writefile.put(str_read)
 
 
     def counting_objects(self):
@@ -138,7 +153,7 @@ class Libra():
                 print("[counting_objects] failed to write object:\n\t{}\nto file".format(str_filewrite))
         f.close()
 
-        return length(objects)
+        return len(objects)
 
 
     # Write to file on new stable weight != 0.
@@ -147,7 +162,7 @@ class Libra():
         while True:
             if self.STOP_MAIN:
                 break
-            m = queue_writefile.get()
+            m = self.queue_writefile.get()
             str_filewrite = ",".join(m) + "\n"
             if f.write(str_filewrite) != len(str_filewrite):
                 print("[writefile] error writing to file")
