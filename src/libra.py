@@ -236,7 +236,7 @@ class Libra():
 
     
     # API for setting tare value. If value and unit is not given, set tare to current value
-    def setTare(self, value=None, unit=None):
+    def setTare(self, value=None, unit=GRAM):
         # signal to thread_read_cont to stop and acquire mutex
         self.stopReadCont()
         self.mutex.acquire()
@@ -262,7 +262,7 @@ class Libra():
 
   
     # TODO passes in weight for calibration
-    def calibrate(self, weight, unit):
+    def calibrate(self, weight, unit=GRAM):
         # signal to thread_read_cont to stop and acquire mutex
         self.stopReadCont()
         self.mutex.acquire()
@@ -309,8 +309,24 @@ if __name__ == "__main__":
     x = input("Press key to select option: ").strip()
 
     try:
-        if x == "c":
+        if x == "cr":
             libra.countObjectsInRow()
+        elif x == "ca":
+            tw = input("Target weight (None): ")
+            if not tw:
+                libra.countObjectsAtOnce()
+            else:
+                libra.countObjectsAtOnce(target_weight=float(tw))
+        elif x == "calib":
+            w = float(input("Weight for calibration: "))
+            libra.calibrate(weight=w)
+        elif x == "t":
+            t = input("Tare: ")
+            if not t:
+                libra.setTare()
+            else:
+                libra.setTare(value=float(t))
+                
         while True:
             pass
     except KeyboardInterrupt:
