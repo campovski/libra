@@ -142,12 +142,12 @@ class Libra():
             self.queue_backup.put(str_read)
 
             if str_read[1] == STABLE:
-                self.stabilization_time = now - self.stabilization_time_start
+                # TODO refresh stabilization time in UI
+                timediff = now - self.stabilization_time_start
                 self.stabilization_time_start = None
+                self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
 
-                self.stabilization_time = self.stabilization_time.seconds + round(self.stabilization_time.microseconds/10**6, 3)
                 self.queue_writefile.put(str_read+[self.stabilization_time])
-
             elif stabilization_time_start is None:
                 self.stabilization_time = NAN
                 self.stabilization_time_start = now
