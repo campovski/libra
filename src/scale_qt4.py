@@ -30,7 +30,8 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.mass = QtGui.QLCDNumber(self.centralwidget)
         self.mass.setGeometry(QtCore.QRect(120, 60, 201, 41))
-        self.mass.setNumDigits(6)
+        self.mass.setNumDigits(7)
+        self.mass.setDigitCount(7)
         self.mass.setObjectName(_fromUtf8("mass"))
         self.static_teza = QtGui.QLabel(self.centralwidget)
         self.static_teza.setGeometry(QtCore.QRect(20, 70, 68, 17))
@@ -184,6 +185,11 @@ class Ui_MainWindow(object):
         QtCore.QObject.connect(self.refresh_env_data, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.updateEnvData)
         QtCore.QObject.connect(self.save, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.saveToFile)
         QtCore.QObject.connect(self.serial_connect, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.updateEnvData)
+        QtCore.QObject.connect(self.set_to_value, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.setTo)
+        QtCore.QObject.connect(self.set_to_zero, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.setToZero)
+        QtCore.QObject.connect(self.send_command, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.sendCommand)
+        QtCore.QObject.connect(self.pushButton_7, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.countPieces)
+        QtCore.QObject.connect(self.pushButton_6, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.calculatePieces)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

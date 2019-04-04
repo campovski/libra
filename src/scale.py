@@ -4,6 +4,8 @@ from scale_qt4 import MainWindow
 import sys
 import signal
 import serial
+import time
+from threading import Thread
 
 def close(*args):
 	QtGui.QApplication.quit()
@@ -14,10 +16,13 @@ class Window(MainWindow):
 	def __init__(self, libra):
 		self.libra = libra
 		MainWindow.__init__(self)
-		self.timer_display = QtCore.QTimer()
-		QtCore.QObject.connect(self.timer_display, QtCore.SIGNAL('timeout()'), self.updateDisplay)
+		t = Thread(name="updateDisplay", target=self.updateDisplay)
+		t.daemon = True
+		t.start()
+		# self.timer_display = QtCore.QTimer()
+		# QtCore.QObject.connect(self.timer_display, QtCore.SIGNAL('timeout()'), self.updateDisplay)
 
-		self.timer_display.start(1)  # 2 seconds
+		# self.timer_display.start(1)  # 2 seconds
 
 	def updateEnvData(self):
 		env_data = self.libra.getEnvData()
@@ -26,9 +31,17 @@ class Window(MainWindow):
 		self.tlak.setText(env_data["pressure"])
 
 	def updateDisplay(self):
-		data = self.libra.queue_backup.get()
-		self.mass.display(data[2])
-		self.status.setText(data[1])
+		while 1:
+			if not self.libra.queue_backup.empty():
+				data = self.libra.queue_backup.get()
+				self.mass.display(data[2])
+				self.status.setText(data[1])
+
+			self.status_2.setText(str(self.libra.stabilization_time))
+
+
+
+			time.sleep(0.05)
 
 	def setStatus(self,status):
 		self.status.setText(status)
@@ -41,16 +54,20 @@ class Window(MainWindow):
 		pass
 
 	def sendCommand(self):
-		pass
+
+		cmd = "{0}\r\n".format(str(self.command.text())).encode('ascii')
+		self.libra.ser.write(cmd)
 
 	def setToZero(self):
-		pass
+		self.libra.setTare(0)
 
 	def setTo(self):
-		pass
+		self.libra.setTare(float(str(self.tara.text())))
+		self.tara.setText(str(self.libra.current_tare))
+
 
 	def doCalibration(self):
-		pass
+		self.libra.calibrate(100)
 
 	def saveToFile(self):
 		w = QtGui.QWidget()
@@ -59,8 +76,11 @@ class Window(MainWindow):
 
 		self.filename = QtGui.QFileDialog.getSaveFileName(w, 'Save File', 'podatki.csv')
 
+	def calculatePieces(self):
+		self.count.setText(str(self.libra.countObjectsAtOnce()))
+
 	def countPieces(self):
-		pass
+		self.count_2.setText(str(self.libra.countObjectsInRow()))
 
 def runGui():
 	app = QtGui.QApplication(sys.argv)
@@ -75,9 +95,7 @@ def runGui():
 	window.show()
 
 	# app.exec_()
-	# t = Thread(name="rospy.spin",target=rospy.spin)
-	# t.daemon = True
-	# t.start()
+
 	sys.exit(app.exec_())
 
 

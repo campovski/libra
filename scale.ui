@@ -24,7 +24,10 @@
      </rect>
     </property>
     <property name="numDigits">
-     <number>6</number>
+     <number>7</number>
+    </property>
+    <property name="digitCount">
+     <number>7</number>
     </property>
    </widget>
    <widget class="QLabel" name="static_teza">
@@ -675,10 +678,95 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>set_to_value</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setTo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>278</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>243</x>
+     <y>301</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>set_to_zero</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setToZero()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>355</x>
+     <y>276</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>460</x>
+     <y>233</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>send_command</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>sendCommand()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>881</x>
+     <y>414</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1034</x>
+     <y>398</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_7</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>countPieces()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>223</x>
+     <y>695</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>371</x>
+     <y>644</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_6</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>calculatePieces()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>468</x>
+     <y>545</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>526</x>
+     <y>469</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateEnvData()</slot>
   <slot>saveToFile()</slot>
   <slot>findSerial()</slot>
+  <slot>setTo()</slot>
+  <slot>setToZero()</slot>
+  <slot>sendCommand()</slot>
+  <slot>countPieces()</slot>
+  <slot>calculatePieces()</slot>
  </slots>
 </ui>
