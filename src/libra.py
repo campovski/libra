@@ -8,10 +8,11 @@ import requests
 
 
 # Commands
-CMD_CONT_READ = "SIR\r\n".encode('ascii')
-CMD_SET_TARE = "TA"
-CMD_GET_TARE = "TA\r\n".encode('ascii')
-CMD_CALIBRATE = None
+CMD_CONT_READ = "SIR\r\n".encode("ascii")
+CMD_SET_TARE = "T\r\n".encode("ascii")
+CMD_CALIBRATE_SETTINGS = "C0\r\n".encode("ascii")
+CMD_CALIBRATE_SET_SETTINGS = "C0 0 1\r\n".encode("ascii")
+CMD_CALIBRATE_INIT_CALIB = "C2\r\n".encode("ascii")
 
 # Return options
 STABLE = "S"
@@ -41,10 +42,10 @@ class Libra():
 	queue_special = None  # used for anything else
 	queue_writefile = None  # queue for writing data to file
 
-	current_tare = None  # current tare setting
+	current_tare = "0.00"  # current tare setting
 
-	stabilization_time = 0.000  # time from first UNSTABLE to first STABLE, initially on 0
-	stabilization_time_start = datetime.datetime.now()  # time of first UNSTABLE
+	stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
+	stabilization_time_start = None  # time of first UNSTABLE
 
 	# Custom signals
 	STOP_COUNTING = False
@@ -146,23 +147,18 @@ class Libra():
 				break
 			now = datetime.datetime.now()
 			str_read = self.ser.read_until(serial.CR+serial.LF)
-			# now = (now + datetime.datetime.now()) / 2  # take mid time
 			str_read = self.processRead(str_read)
 			self.queue_cont_read.put(str_read)
 			self.queue_backup.put(str_read)
 
-			if self.stabilization_time_start is None:
+			if self.stabilization_time_start is None and str_read[1] == UNSTABLE:
 				self.stabilization_time = NAN
 				self.stabilization_time_start = now
-
 			elif str_read[1] == STABLE:
-				# TODO refresh stabilization time in UI
 				timediff = now - self.stabilization_time_start
 				self.stabilization_time_start = None
 				self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
-
 				self.queue_writefile.put(str_read+[self.stabilization_time])
-
 
 
 	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
@@ -211,13 +207,19 @@ class Libra():
 			print("[countObjectsAtOnce] Waiting for stable weight ...")
 			while True:
 				m = self.queue_cont_read.get()
-				if m[1] == STABLE:
+				if m[1] == STABLE and float(m[2]) > 0.1:
 					target = float(m[2])
 					break
 		else:
 			target = target_weight
 
 		print("[countObjectsAtOnce] Stable weight acquired, target weight is {0}".format(target))
+		print("[countObjectsAtOnce] Remove object and weight for stable zero ...")
+		while True:
+			m = self.queue_cont_read.get()
+			if m[1] == STABLE and float(m[2]) < 0.1:
+				break
+		print("[countObjectsAtOnce] Stable zero acquired. Put objects on weight")
 		# weight will now become UNSTABLE due to change of pieces on scale
 		weight = None
 		while True:
@@ -248,40 +250,68 @@ class Libra():
 
 
 	# API for setting tare value. If value and unit is not given, set tare to current value
-	def setTare(self, value=None, unit=GRAM):
+	def setTare(self, zero=False):
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
 		self.mutex.acquire()
 
+		# Our scale only supports tare on next stable weight.
+		if not zero:
+			self.ser.write(CMD_SET_TARE)
+		else:
+			self.ser.write(CMD_SET_ZERO)
 
-		cmd = "{0} {1} {2}\r\n".format(CMD_SET_TARE, round(value,2), unit).encode('ascii')
-		self.ser.write(cmd)
-
-		self.current_tare = value #self.getTareFromScale()
-
+		# Response is "T S value unit". If not "S", something went wrong.
+		response = self.ser.read_until(serail.CR+serial.LF).decode("ascii").strip()
+		response_parts = response.split()
+		ret = False
+		if not zero and response_parts[1] == "S":
+			self.current_tare = response_parts[2]
+			ret = True
+		elif not zero:
+			print("[setTare] Could not set tare ...\nResponse was: '{}'".format(response))
+		elif zero and response_parts[1] == "A":
+			print("[setTare] Balance has been succesfully zeroed")
+			ret = True
+		else:
+			print("[setTare] Could not zero the balance ...\n Response was: '{}'".format(response))
+		
 		# release mutex and continue with continuous weight reading
 		self.mutex.release()
 		self.startReadCont()
+		return ret
 
-
-	# TODO get current tare setting: correct CMD_GET_TARE
-	def getTareFromScale(self):
-		self.ser.write(CMD_GET_TARE)
-		tare = self.ser.read_until(serial.CR+serial.LF)
-		self.current_tare = float(tare)
+	
+	def setZero(self):
+		return self.setTare(zero=False)
 
 
 	# TODO passes in weight for calibration
-	def calibrate(self, weight, unit=GRAM):
+	def calibrate(self, info=True):
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
 		self.mutex.acquire()
 
-		self.ser.write("{0} {1} {2}\r\n".format(CMD_CALIBRATE, weight, unit))
+		if info:
+			self.ser.write(CMD_CALIBRATE_SETTINGS)
+			response = self.ser.read_until(serial.CR+serial.LF).decode("ascii")
+			print("[calibrate] Calibration settings: '{}'".format(response))
+			return True
+		else:
+			self.ser.write(CMD_CALIBRATE_SET_SETTINGS)
+			response = self.ser.read_until(serial.CR+serial.LF).decode("ascii")
+			response_parts = response.strip().split()
+			ret = False
+			if response_parts[1] == "A":
+				print("[calibrate] Setting calibration settings successful")
+				ret = True
+			else:
+				print("[calibrate] Setting calibration settings failed ...\nResponse was: '{}'".format(response))
 
 		# release mutex and continue weighting
 		self.mutex.release()
 		self.startReadCont()
+		return ret
 
 
 	# API for stoping writefile thread. Should not close this thread unless the end of the program.
