@@ -54,9 +54,12 @@ class Window(MainWindow):
 		pass
 
 	def sendCommand(self):
+		cmd = str(self.command.text())
 
-		cmd = "{0}\r\n".format(str(self.command.text())).encode('ascii')
-		self.libra.ser.write(cmd)
+		# cmd = "{0}\r\n".format(str(self.command.text())).encode('ascii')
+		# self.libra.ser.write(cmd)
+		data = self.libra.queue_backup.get()
+		self.return_data.setText(data[0])
 
 	def setToZero(self):
 		self.libra.setTare(0)
@@ -67,7 +70,10 @@ class Window(MainWindow):
 
 
 	def doCalibration(self):
-		self.libra.calibrate(100)
+		weight = str(self.command.text())
+		if not weight:
+			weight = 100
+		self.libra.calibrate(float(weight))
 
 	def saveToFile(self):
 		w = QtGui.QWidget()

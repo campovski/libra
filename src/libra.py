@@ -55,10 +55,10 @@ class Libra():
 
 	def __init__(self, port=None, baudrate=None, bytesize=None, parity=None, stopbits=None, xonxoff=None):
 		if port is not None:
-			# try:
-			self.openSerial(port, baudrate, bytesize, parity, stopbits, xonxoff)
-		# except:
-		#     print("Serial port error")
+			try:
+				self.openSerial(port, baudrate, bytesize, parity, stopbits, xonxoff)
+			except:
+				print("Serial port error")
 
 		self.queue_cont_read = queue.Queue()
 		self.queue_backup = queue.Queue()
