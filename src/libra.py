@@ -5,6 +5,7 @@ import queue
 import datetime
 import subprocess
 import requests
+import time
 
 
 # Commands
@@ -28,6 +29,9 @@ GRAM = "g"
 # NaN used for stabilization time while unstable
 NAN = float("nan")
 
+COUNT_ROW = "in_row"
+COUNT_ONCE = "once"
+
 
 class Libra():
 
@@ -46,6 +50,8 @@ class Libra():
 
 	stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
 	stabilization_time_start = None  # time of first UNSTABLE
+
+	count_results = None  # Used for getting results of counting, either number of pieces in a row or at once present
 
 	# Custom signals
 	STOP_COUNTING = False
@@ -161,7 +167,26 @@ class Libra():
 				self.queue_writefile.put(str_read+[self.stabilization_time])
 
 
-	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
+	def countApi(self, method):
+		print("[countApi] Starting thread with method " + method)
+		if method == COUNT_ROW:
+			target = self.countObjectsInRow()
+		elif method == COUNT_ONCE:
+			target = self.countObjectsAtOnce()
+		else:
+			print("[countApi] Unknown method ...")
+			return
+
+		thread_count = threading.Thread(
+			target=target,
+			name="countAPI",
+			deamon=True
+		)
+
+		thread_count.join()
+		print("[countApi] Thread joined.")
+
+
 	def countObjectsInRow(self):
 		print("[countObjectsInRow] Waiting for stable zero ...")
 		while True:
@@ -195,7 +220,7 @@ class Libra():
 				print("[countObjectsInRow] failed to write object:\n\t{}\nto file".format(str_filewrite))
 		f.close()
 
-		return len(objects)
+		self.count_results = len(objects)
 
 
 	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
@@ -230,10 +255,10 @@ class Libra():
 
 		if weight is not None:
 			print("[countObjectsAtOnce] Counted {0} objects".format(weight/target))
-			return weight / target
+			self.count_results = weight / target
 		else:
 			print("[countObjectsAtOnce] Counting failed. Measured weight is None")
-			return None
+			self.count_results = None
 
 
 	# Write to file on new stable weight != 0.
@@ -287,6 +312,7 @@ class Libra():
 
 
 	# TODO passes in weight for calibration
+	# NOT WORKING !!!
 	def calibrate(self, info=True):
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
@@ -331,8 +357,6 @@ class Libra():
 		caller = sys._getframe(1).f_code.co_name
 		print("[{0}] thread *read_cont* joined!".format(caller))
 		self.thread_cont_read = None
-
-
 
 
 if __name__ == "__main__":
