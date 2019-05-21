@@ -5,11 +5,13 @@ import queue
 import datetime
 import subprocess
 import requests
+import time
 
 
 # Commands
 CMD_CONT_READ = "SIR\r\n".encode("ascii")
 CMD_SET_TARE = "T\r\n".encode("ascii")
+CMD_SET_ZERO = "Z\r\n".encode("ascii")
 CMD_CALIBRATE_SETTINGS = "C0\r\n".encode("ascii")
 CMD_CALIBRATE_SET_SETTINGS = "C0 0 1\r\n".encode("ascii")
 CMD_CALIBRATE_INIT_CALIB = "C2\r\n".encode("ascii")
@@ -120,6 +122,7 @@ class Libra():
 
 
 	def startReadCont(self):
+		self.STOP_MAIN = False
 		assert self.ser is not None, "[startReadCont] Not connected to serial port"
 
 		if self.thread_cont_read is None:
@@ -147,6 +150,7 @@ class Libra():
 				break
 			now = datetime.datetime.now()
 			str_read = self.ser.read_until(serial.CR+serial.LF)
+			# print(str_read)
 			str_read = self.processRead(str_read)
 			self.queue_cont_read.put(str_read)
 			self.queue_backup.put(str_read)
@@ -154,12 +158,11 @@ class Libra():
 			if self.stabilization_time_start is None and str_read[1] == UNSTABLE:
 				self.stabilization_time = NAN
 				self.stabilization_time_start = now
-			elif str_read[1] == STABLE:
+			elif str_read[1] == STABLE and self.stabilization_time_start is not None:
 				timediff = now - self.stabilization_time_start
 				self.stabilization_time_start = None
 				self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
 				self.queue_writefile.put(str_read+[self.stabilization_time])
-
 
 	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
 	def countObjectsInRow(self):
@@ -238,11 +241,13 @@ class Libra():
 
 	# Write to file on new stable weight != 0.
 	def writefile(self):
-		f = open(ALL_FILE, "a+")
-		while True:
+		f = open(ALL_FILE, "w")
+		print("file")
+		while True:s
 			if self.STOP_WRITE:
 				break
 			m = self.queue_writefile.get()
+			print(m)
 			str_filewrite = ",".join(m) + "\n"
 			if f.write(str_filewrite) != len(str_filewrite):
 				print("[writefile] error writing to file")
@@ -253,7 +258,10 @@ class Libra():
 	def setTare(self, zero=False):
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
+
 		self.mutex.acquire()
+		while not self.queue_cont_read.empty():
+				print(self.queue_cont_read.get())
 
 		# Our scale only supports tare on next stable weight.
 		if not zero:
@@ -262,28 +270,18 @@ class Libra():
 			self.ser.write(CMD_SET_ZERO)
 
 		# Response is "T S value unit". If not "S", something went wrong.
-		response = self.ser.read_until(serail.CR+serial.LF).decode("ascii").strip()
+		response = self.ser.read_until(serial.CR+serial.LF).decode("ascii").strip()
+		print(response)
 		response_parts = response.split()
-		ret = False
-		if not zero and response_parts[1] == "S":
-			self.current_tare = response_parts[2]
-			ret = True
-		elif not zero:
-			print("[setTare] Could not set tare ...\nResponse was: '{}'".format(response))
-		elif zero and response_parts[1] == "A":
-			print("[setTare] Balance has been succesfully zeroed")
-			ret = True
-		else:
-			print("[setTare] Could not zero the balance ...\n Response was: '{}'".format(response))
-		
+
 		# release mutex and continue with continuous weight reading
 		self.mutex.release()
 		self.startReadCont()
-		return ret
+		return response_parts[1]
 
 	
 	def setZero(self):
-		return self.setTare(zero=False)
+		return self.setTare(0)
 
 
 	# TODO passes in weight for calibration
@@ -327,6 +325,7 @@ class Libra():
 	def stopReadCont(self):
 		self.STOP_MAIN = True
 		self.thread_cont_read.join()
+		# self.ser.write("@\r\n".encode("ascii"))
 		self.mutex.release()
 		caller = sys._getframe(1).f_code.co_name
 		print("[{0}] thread *read_cont* joined!".format(caller))

@@ -34,8 +34,9 @@ class Window(MainWindow):
 		while 1:
 			if not self.libra.queue_backup.empty():
 				data = self.libra.queue_backup.get()
-				self.mass.display(data[2])
-				self.status.setText(data[1])
+				if len(data) > 2:
+					self.mass.display(data[2])
+					self.status.setText(data[1])
 
 			self.status_2.setText(str(self.libra.stabilization_time))
 
@@ -62,7 +63,7 @@ class Window(MainWindow):
 		self.return_data.setText(data[0])
 
 	def setToZero(self):
-		self.libra.setTare(0)
+		self.tara.setText(self.libra.setZero())
 
 	def setTo(self):
 		self.libra.setTare(float(str(self.tara.text())))
