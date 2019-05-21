@@ -11,7 +11,6 @@ import time
 # Commands
 CMD_CONT_READ = "SIR\r\n".encode("ascii")
 CMD_SET_TARE = "T\r\n".encode("ascii")
-CMD_SET_ZERO = "Z\r\n".encode("ascii")
 CMD_CALIBRATE_SETTINGS = "C0\r\n".encode("ascii")
 CMD_CALIBRATE_SET_SETTINGS = "C0 0 1\r\n".encode("ascii")
 CMD_CALIBRATE_INIT_CALIB = "C2\r\n".encode("ascii")
@@ -29,6 +28,9 @@ GRAM = "g"
 
 # NaN used for stabilization time while unstable
 NAN = float("nan")
+
+COUNT_ROW = "in_row"
+COUNT_ONCE = "once"
 
 
 class Libra():
@@ -48,6 +50,8 @@ class Libra():
 
 	stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
 	stabilization_time_start = None  # time of first UNSTABLE
+
+	count_results = None  # Used for getting results of counting, either number of pieces in a row or at once present
 
 	# Custom signals
 	STOP_COUNTING = False
@@ -150,7 +154,6 @@ class Libra():
 				break
 			now = datetime.datetime.now()
 			str_read = self.ser.read_until(serial.CR+serial.LF)
-			# print(str_read)
 			str_read = self.processRead(str_read)
 			self.queue_cont_read.put(str_read)
 			self.queue_backup.put(str_read)
@@ -164,7 +167,27 @@ class Libra():
 				self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
 				self.queue_writefile.put(str_read+[self.stabilization_time])
 
-	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
+
+	def countApi(self, method):
+		print("[countApi] Starting thread with method " + method)
+		if method == COUNT_ROW:
+			target = self.countObjectsInRow()
+		elif method == COUNT_ONCE:
+			target = self.countObjectsAtOnce()
+		else:
+			print("[countApi] Unknown method ...")
+			return
+
+		thread_count = threading.Thread(
+			target=target,
+			name="countAPI",
+			deamon=True
+		)
+
+		thread_count.join()
+		print("[countApi] Thread joined.")
+
+
 	def countObjectsInRow(self):
 		print("[countObjectsInRow] Waiting for stable zero ...")
 		while True:
@@ -198,7 +221,7 @@ class Libra():
 				print("[countObjectsInRow] failed to write object:\n\t{}\nto file".format(str_filewrite))
 		f.close()
 
-		return len(objects)
+		self.count_results = len(objects)
 
 
 	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
@@ -233,21 +256,19 @@ class Libra():
 
 		if weight is not None:
 			print("[countObjectsAtOnce] Counted {0} objects".format(weight/target))
-			return weight / target
+			self.count_results = weight / target
 		else:
 			print("[countObjectsAtOnce] Counting failed. Measured weight is None")
-			return None
+			self.count_results = None
 
 
 	# Write to file on new stable weight != 0.
 	def writefile(self):
-		f = open(ALL_FILE, "w")
-		print("file")
-		while True:s
+		f = open(ALL_FILE, "a+")
+		while True:
 			if self.STOP_WRITE:
 				break
 			m = self.queue_writefile.get()
-			print(m)
 			str_filewrite = ",".join(m) + "\n"
 			if f.write(str_filewrite) != len(str_filewrite):
 				print("[writefile] error writing to file")
@@ -258,7 +279,6 @@ class Libra():
 	def setTare(self, zero=False):
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
-
 		self.mutex.acquire()
 		while not self.queue_cont_read.empty():
 				print(self.queue_cont_read.get())
@@ -270,14 +290,24 @@ class Libra():
 			self.ser.write(CMD_SET_ZERO)
 
 		# Response is "T S value unit". If not "S", something went wrong.
-		response = self.ser.read_until(serial.CR+serial.LF).decode("ascii").strip()
-		print(response)
+		response = self.ser.read_until(serail.CR+serial.LF).decode("ascii").strip()
 		response_parts = response.split()
-
+		ret = False
+		if not zero and response_parts[1] == "S":
+			self.current_tare = response_parts[2]
+			ret = True
+		elif not zero:
+			print("[setTare] Could not set tare ...\nResponse was: '{}'".format(response))
+		elif zero and response_parts[1] == "A":
+			print("[setTare] Balance has been succesfully zeroed")
+			ret = True
+		else:
+			print("[setTare] Could not zero the balance ...\n Response was: '{}'".format(response))
+		
 		# release mutex and continue with continuous weight reading
 		self.mutex.release()
 		self.startReadCont()
-		return response_parts[1]
+		return ret
 
 	
 	def setZero(self):
@@ -285,6 +315,7 @@ class Libra():
 
 
 	# TODO passes in weight for calibration
+	# NOT WORKING !!!
 	def calibrate(self, info=True):
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
