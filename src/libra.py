@@ -29,6 +29,7 @@ GRAM = "g"
 # NaN used for stabilization time while unstable
 NAN = float("nan")
 
+# Used for determining which type of counting a user wants
 COUNT_ROW = "in_row"
 COUNT_ONCE = "once"
 
@@ -46,9 +47,7 @@ class Libra():
 	queue_special = None  # used for anything else
 	queue_writefile = None  # queue for writing data to file
 
-
-
-	env_data = None
+	env_data = None  # stores a dictionary of environment data (humidity, temperature, and pressure)
 
 	# Custom signals
 	STOP_COUNTING = False
@@ -85,7 +84,6 @@ class Libra():
 		self.getEnvData()
 
 
-
 	def __str__(self):
 		print("Libra on port {0} with following configuration:\n\
                \tPORT = {1}\n\
@@ -113,6 +111,7 @@ class Libra():
 
 		return env_data
 
+
 	def __str__(self):
 		print("Libra on port {0} with following configuration:\n\
                \tPORT = {1}\n\
@@ -121,6 +120,7 @@ class Libra():
                \tPARITY = {4}\n\
                \tSTOPBITS = {5}\n\
                \tXONXOFF = {6}\n")
+
 
 	def openSerial(self, port, baudrate, bytesize, parity, stopbits, xonxoff):
 		self.ser = serial.Serial(
@@ -155,7 +155,7 @@ class Libra():
 
 	def processRead(self, string):
 		string = string.decode('ascii').strip().split()
-		return [datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")] + string #+ self.getEnvData()
+		return [datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")] + string
 
 
 	def readCont(self):
@@ -187,21 +187,19 @@ class Libra():
 			return
 		print("[countApi] Starting thread with method " + method)
 		if method == COUNT_ROW:
-			self.thread_count = threading.Thread(target=self.countObjectsInRow,	name="countAPI",				daemon=True			)
+			self.thread_count = threading.Thread(target=self.countObjectsInRow,	name="countAPI", daemon=True)
 		elif method == COUNT_ONCE:
-			self.thread_count = threading.Thread(target=self.countObjectsAtOnce,				name="countAPI",				daemon=True, args=[target]		)
+			self.thread_count = threading.Thread(target=self.countObjectsAtOnce, name="countAPI", daemon=True, args=[target])
 		else:
 			print("[countApi] Unknown method ...")
 			return
 
 		self.thread_count.start()
-		# thread_count.join()
-		# print("[countApi] Thread joined.")
 
 
 	def countObjectsInRow(self):
 		print("[countObjectsInRow] Waiting for stable zero ...")
-		while  not self.thread_count_stop:
+		while not self.thread_count_stop:
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and float(m[2]) < 0.1:
 				break
@@ -216,13 +214,13 @@ class Libra():
 			if m[1] == STABLE and new and float(m[2]) > 0.1:
 				new = False
 				objects.append(m)
-				print('beep')  # beep sound
+				print('beep')
 			elif m[1] == UNSTABLE:
 				new = True
 
 		try:
 			id_counting = str(int(subprocess.check_output(["tail", "-1", COUNTING_FILE]).split(',')[0])+1)
-		except:# subprocess.CalledProcessError:
+		except:
 			id_counting = "0"
 
 		f = open(COUNTING_FILE, mode="a+")
@@ -235,12 +233,9 @@ class Libra():
 		self.count_results_row = len(objects)
 
 
-	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
-	# TODO UI: Inform user to put an object on the scale if not called with target_weight.
-	# Run this function after user presses ok.
 	def countObjectsAtOnce(self, target_weight=None):
 		self.target = None
-		if target_weight is None:  # we need to get stable weight of an object
+		if target_weight is None:  # we need to get stable weight of an object unless it was already supplied
 			print("[countObjectsAtOnce] Waiting for stable weight ...")
 			while True:
 				m = self.queue_cont_read.get()
@@ -273,7 +268,7 @@ class Libra():
 			self.count_results_once = None
 
 
-	# Write to file on new stable weight != 0.
+	# Write to file on new stable weight.
 	def writefile(self):
 		while True:
 			f = open(ALL_FILE, "a+")
@@ -311,37 +306,9 @@ class Libra():
 		self.startReadCont()
 
 	
+	# Could be deprecated but we love to keep backward compatibility ;).
 	def setZero(self):
 		return self.setTare(0)
-
-
-	# TODO passes in weight for calibration
-	# NOT WORKING !!!
-	def calibrate(self, info=True):
-		# signal to thread_read_cont to stop and acquire mutex
-		self.stopReadCont()
-		self.mutex.acquire()
-
-		if info:
-			self.ser.write(CMD_CALIBRATE_SETTINGS)
-			response = self.ser.read_until(serial.CR+serial.LF).decode("ascii")
-			print("[calibrate] Calibration settings: '{}'".format(response))
-			return True
-		else:
-			self.ser.write(CMD_CALIBRATE_SET_SETTINGS)
-			response = self.ser.read_until(serial.CR+serial.LF).decode("ascii")
-			response_parts = response.strip().split()
-			ret = False
-			if response_parts[1] == "A":
-				print("[calibrate] Setting calibration settings successful")
-				ret = True
-			else:
-				print("[calibrate] Setting calibration settings failed ...\nResponse was: '{}'".format(response))
-
-		# release mutex and continue weighting
-		self.mutex.release()
-		self.startReadCont()
-		return ret
 
 
 	# API for stoping writefile thread. Should not close this thread unless the end of the program.
@@ -362,7 +329,6 @@ class Libra():
 		caller = sys._getframe(1).f_code.co_name
 		print("[{0}] thread *read_cont* joined!".format(caller))
 		self.thread_cont_read = None
-
 
 
 
@@ -405,21 +371,3 @@ if __name__ == "__main__":
 	except KeyboardInterrupt:
 		libra.stopReadCont()
 		libra.stopWritefile()
-
-
-
-
-
-
-
-
-        
-
-            
-
-
-
-
-
-        
-    
