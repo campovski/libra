@@ -46,13 +46,7 @@ class Libra():
 	queue_special = None  # used for anything else
 	queue_writefile = None  # queue for writing data to file
 
-	self.current_tare = "0.00"  # current tare setting
 
-	self.stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
-	self.stabilization_time_start = None  # time of first UNSTABLE
-
-	self.count_results_row = None  # Used for getting results of counting, either number of pieces in a row or at once present
-	self.count_results_once = None
 
 	env_data = None
 
@@ -63,6 +57,13 @@ class Libra():
 
 
 	def __init__(self, port=None, baudrate=None, bytesize=None, parity=None, stopbits=None, xonxoff=None):
+		self.current_tare = "0.00"  # current tare setting
+
+		self.stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
+		self.stabilization_time_start = None  # time of first UNSTABLE
+
+		self.count_results_row = 0  # Used for getting results of counting, either number of pieces in a row or at once present
+		self.count_results_once = 0
 		if port is not None:
 			try:
 				self.openSerial(port, baudrate, bytesize, parity, stopbits, xonxoff)
@@ -238,7 +239,7 @@ class Libra():
 		target = None
 		if target_weight is None:  # we need to get stable weight of an object
 			print("[countObjectsAtOnce] Waiting for stable weight ...")
-			while not self.thread_count_stop:
+			while True:
 				m = self.queue_cont_read.get()
 				if m[1] == STABLE and float(m[2]) > 0.1:
 					target = float(m[2])
@@ -255,7 +256,7 @@ class Libra():
 		print("[countObjectsAtOnce] Stable zero acquired. Put objects on weight")
 		# weight will now become UNSTABLE due to change of pieces on scale
 		weight = None
-		while not self.thread_count_stop:
+		while True:
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and float(m[2]) > 0.1:
 				weight = float(m[2])

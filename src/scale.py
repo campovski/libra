@@ -43,9 +43,8 @@ class Window(MainWindow):
 					self.status.setText(data[1])
 
 			self.status_2.setText(str(self.libra.stabilization_time))
-
-
-
+			self.count.setText(str(round(self.libra.count_results_once)))
+			self.count_2.setText(str(self.libra.count_results_row))
 			time.sleep(0.05)
 
 	def setStatus(self,status):
