@@ -149,7 +149,7 @@ class Libra():
 
 	def processRead(self, string):
 		string = string.decode('ascii').strip().split()
-		return [datetime.datetime.now()] + string #+ self.getEnvData()
+		return [datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")] + string #+ self.getEnvData()
 
 
 	def readCont(self):
@@ -171,7 +171,7 @@ class Libra():
 				timediff = now - self.stabilization_time_start
 				self.stabilization_time_start = None
 				self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
-				self.queue_writefile.put(str_read+[self.stabilization_time]+self.env_data)
+				self.queue_writefile.put(str_read+[self.stabilization_time]+[self.env_data["pressure"], self.env_data["humidity"], self.env_data["temperature"]])
 
 
 	def countApi(self, method):
