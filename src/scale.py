@@ -91,7 +91,13 @@ class Window(MainWindow):
 		self.filename = QtGui.QFileDialog.getSaveFileName(w, 'Save File', 'podatki.csv')
 
 	def calculatePieces(self):
-		self.libra.countApi(libra.COUNT_ONCE)
+		try:
+			weight = float(self.weight.text())
+		except:
+			weight = None
+			self.weight.setText("")
+
+		self.libra.countApi(libra.COUNT_ONCE,target=weight)
 		# self.count.setText(str(self.libra.countApi(libra.COUNT_ONCE)))
 
 	def countPieces(self, stop):

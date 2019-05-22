@@ -177,7 +177,7 @@ class Libra():
 				self.queue_writefile.put(str_read+[str(self.stabilization_time)]+[self.env_data["pressure"], self.env_data["humidity"], self.env_data["temperature"]])
 
 
-	def countApi(self, method,stop=False):
+	def countApi(self, method,stop=False,target=None):
 		self.thread_count_stop = stop
 		if stop:
 			print("[countApi] exit")
@@ -186,7 +186,7 @@ class Libra():
 		if method == COUNT_ROW:
 			self.thread_count = threading.Thread(target=self.countObjectsInRow,	name="countAPI",				daemon=True			)
 		elif method == COUNT_ONCE:
-			self.thread_count = threading.Thread(				target=self.countObjectsAtOnce,				name="countAPI",				daemon=True			)
+			self.thread_count = threading.Thread(target=self.countObjectsAtOnce,				name="countAPI",				daemon=True, args=[target]		)
 		else:
 			print("[countApi] Unknown method ...")
 			return
