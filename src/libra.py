@@ -64,6 +64,8 @@ class Libra():
 
 		self.count_results_row = 0  # Used for getting results of counting, either number of pieces in a row or at once present
 		self.count_results_once = 0
+		self.target = ""
+		
 		if port is not None:
 			try:
 				self.openSerial(port, baudrate, bytesize, parity, stopbits, xonxoff)
@@ -236,16 +238,16 @@ class Libra():
 	# TODO UI: Inform user to put an object on the scale if not called with target_weight.
 	# Run this function after user presses ok.
 	def countObjectsAtOnce(self, target_weight=None):
-		target = None
+		self.target = None
 		if target_weight is None:  # we need to get stable weight of an object
 			print("[countObjectsAtOnce] Waiting for stable weight ...")
 			while True:
 				m = self.queue_cont_read.get()
 				if m[1] == STABLE and float(m[2]) > 0.1:
-					target = float(m[2])
+					self.target = float(m[2])
 					break
 		else:
-			target = target_weight
+			self.target = target_weight
 
 		print("[countObjectsAtOnce] Stable weight acquired, target weight is {0}".format(target))
 		print("[countObjectsAtOnce] Remove object and weight for stable zero ...")
