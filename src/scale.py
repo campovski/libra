@@ -1,9 +1,11 @@
 from PyQt4 import QtGui, QtCore
 from libra import Libra
+import libra
 from scale_qt4 import MainWindow
 import sys
 import signal
 import serial
+import serial.tools.list_ports
 import time
 from threading import Thread
 
@@ -19,6 +21,8 @@ class Window(MainWindow):
 		t = Thread(name="updateDisplay", target=self.updateDisplay)
 		t.daemon = True
 		t.start()
+		self.ports = []
+		self.findSerial()
 		# self.timer_display = QtCore.QTimer()
 		# QtCore.QObject.connect(self.timer_display, QtCore.SIGNAL('timeout()'), self.updateDisplay)
 
@@ -48,8 +52,11 @@ class Window(MainWindow):
 		self.status.setText(status)
 
 	def findSerial(self):
-		print(list(serial.tools.list_ports.comports()))
-
+		# self.serial_port.addItems(list(serial.tools.list_ports.comports()))
+		for p in serial.tools.list_ports.comports():
+			if p.device not in self.ports:
+				self.serial_port.addItem(p.device)
+				self.ports.append(p.device)
 
 	def connectSerial(self):
 		pass
@@ -63,7 +70,8 @@ class Window(MainWindow):
 		self.return_data.setText(data[0])
 
 	def setToZero(self):
-		self.tara.setText(self.libra.setZero())
+		# self.tara.setText(self.libra.setZero())
+		self.libra.setZero()
 
 	def setTo(self):
 		self.libra.setTare(float(str(self.tara.text())))
@@ -84,10 +92,12 @@ class Window(MainWindow):
 		self.filename = QtGui.QFileDialog.getSaveFileName(w, 'Save File', 'podatki.csv')
 
 	def calculatePieces(self):
-		self.count.setText(str(self.libra.countObjectsAtOnce()))
+		self.libra.countApi(libra.COUNT_ONCE)
+		# self.count.setText(str(self.libra.countApi(libra.COUNT_ONCE)))
 
-	def countPieces(self):
-		self.count_2.setText(str(self.libra.countObjectsInRow()))
+	def countPieces(self, stop):
+		self.libra.countApi(libra.COUNT_ROW,not stop)
+		# self.count_2.setText(str(self.libra.countApi(libra.COUNT_ROW)))
 
 def runGui():
 	app = QtGui.QApplication(sys.argv)

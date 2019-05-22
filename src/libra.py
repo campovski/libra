@@ -76,6 +76,7 @@ class Libra():
 			name="writefile",
 			daemon=True
 		)
+		self.thread_writefile.start()
 
 		self.getEnvData()
 
@@ -174,29 +175,31 @@ class Libra():
 				self.queue_writefile.put(str_read+[str(self.stabilization_time)]+[self.env_data["pressure"], self.env_data["humidity"], self.env_data["temperature"]])
 
 
-	def countApi(self, method):
+	def countApi(self, method,stop=False):
+		self.thread_count_stop = stop
+		if stop:
+			print("[countApi] exit")
+			return
 		print("[countApi] Starting thread with method " + method)
 		if method == COUNT_ROW:
-			target = self.countObjectsInRow()
+			self.thread_count = threading.Thread(target=self.countObjectsInRow,	name="countAPI",				daemon=True			)
 		elif method == COUNT_ONCE:
-			target = self.countObjectsAtOnce()
+			self.thread_count = threading.Thread(				target=self.countObjectsAtOnce,				name="countAPI",				daemon=True			)
 		else:
 			print("[countApi] Unknown method ...")
 			return
 
-		thread_count = threading.Thread(
-			target=target,
-			name="countAPI",
-			deamon=True
-		)
 
-		thread_count.join()
-		print("[countApi] Thread joined.")
+
+
+		self.thread_count.start()
+		# thread_count.join()
+		# print("[countApi] Thread joined.")
 
 
 	def countObjectsInRow(self):
 		print("[countObjectsInRow] Waiting for stable zero ...")
-		while True:
+		while  not self.thread_count_stop:
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and float(m[2]) < 0.1:
 				break
@@ -204,20 +207,20 @@ class Libra():
 		print("[countObjectsInRow] Stable zero acquired, start weighting ...")
 		objects = []
 		new = False
-		while True:
+		while not self.thread_count_stop:
 			if self.STOP_COUNTING or self.STOP_MAIN:
 				break
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and new and float(m[2]) > 0.1:
 				new = False
 				objects.append(m)
-				print('\a')  # beep sound
+				print('beep')  # beep sound
 			elif m[1] == UNSTABLE:
 				new = True
 
 		try:
 			id_counting = str(int(subprocess.check_output(["tail", "-1", COUNTING_FILE]).split(',')[0])+1)
-		except subprocess.CalledProcessError:
+		except:# subprocess.CalledProcessError:
 			id_counting = "0"
 
 		f = open(COUNTING_FILE, mode="a+")
@@ -237,7 +240,7 @@ class Libra():
 		target = None
 		if target_weight is None:  # we need to get stable weight of an object
 			print("[countObjectsAtOnce] Waiting for stable weight ...")
-			while True:
+			while not self.thread_count_stop:
 				m = self.queue_cont_read.get()
 				if m[1] == STABLE and float(m[2]) > 0.1:
 					target = float(m[2])
@@ -254,7 +257,7 @@ class Libra():
 		print("[countObjectsAtOnce] Stable zero acquired. Put objects on weight")
 		# weight will now become UNSTABLE due to change of pieces on scale
 		weight = None
-		while True:
+		while not self.thread_count_stop:
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and float(m[2]) > 0.1:
 				weight = float(m[2])
@@ -270,15 +273,16 @@ class Libra():
 
 	# Write to file on new stable weight != 0.
 	def writefile(self):
-		f = open(ALL_FILE, "a+")
 		while True:
+			f = open(ALL_FILE, "a+")
 			if self.STOP_WRITE:
 				break
 			m = self.queue_writefile.get()
+			print(m)
 			str_filewrite = ",".join(m) + "\n"
 			if f.write(str_filewrite) != len(str_filewrite):
 				print("[writefile] error writing to file")
-		f.close()
+			f.close()
 
 
 	# API for setting tare value. If value and unit is not given, set tare to current value
@@ -296,7 +300,7 @@ class Libra():
 			self.ser.write(CMD_SET_ZERO)
 
 		# Response is "T S value unit". If not "S", something went wrong.
-		response = self.ser.read_until(serail.CR+serial.LF).decode("ascii").strip()
+		response = self.ser.read_until(serial.CR+serial.LF).decode("ascii").strip()
 		response_parts = response.split()
 		ret = False
 		if not zero and response_parts[1] == "S":

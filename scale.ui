@@ -74,17 +74,22 @@
      <rect>
       <x>850</x>
       <y>90</y>
-      <width>85</width>
+      <width>131</width>
       <height>27</height>
      </rect>
     </property>
+    <item>
+     <property name="text">
+      <string>choose serial</string>
+     </property>
+    </item>
    </widget>
    <widget class="QComboBox" name="serial_boud">
     <property name="geometry">
      <rect>
       <x>850</x>
       <y>130</y>
-      <width>85</width>
+      <width>131</width>
       <height>27</height>
      </rect>
     </property>
@@ -127,9 +132,9 @@
    <widget class="QPushButton" name="serial_connect">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>850</x>
       <y>170</y>
-      <width>99</width>
+      <width>131</width>
       <height>27</height>
      </rect>
     </property>
@@ -245,7 +250,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Send</string>
     </property>
    </widget>
    <widget class="QLabel" name="static_ukaz">
@@ -578,27 +583,12 @@
     </property>
     <item>
      <property name="text">
-      <string>gg</string>
+      <string>SI</string>
      </property>
     </item>
     <item>
      <property name="text">
-      <string>gg</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>efsafsf</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>fafewaf</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>custom</string>
+      <string>SIR</string>
      </property>
     </item>
    </widget>
@@ -650,30 +640,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>serial_connect</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateEnvData()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>914</x>
-     <y>218</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1013</x>
-     <y>236</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>set_to_zero</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>setToZero()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>355</x>
-     <y>276</y>
+     <x>258</x>
+     <y>281</y>
     </hint>
     <hint type="destinationlabel">
      <x>460</x>
@@ -699,17 +673,17 @@
   </connection>
   <connection>
    <sender>pushButton_7</sender>
-   <signal>clicked()</signal>
+   <signal>clicked(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>countPieces()</slot>
+   <slot>countPieces(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>223</x>
      <y>695</y>
     </hint>
     <hint type="destinationlabel">
-     <x>371</x>
-     <y>644</y>
+     <x>372</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>
@@ -729,6 +703,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>serial_connect</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>connectSerial()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>894</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1025</x>
+     <y>249</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>serial_port</sender>
+   <signal>activated(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>findSerial()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>903</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>994</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateEnvData()</slot>
@@ -737,7 +743,8 @@
   <slot>setTo()</slot>
   <slot>setToZero()</slot>
   <slot>sendCommand()</slot>
-  <slot>countPieces()</slot>
+  <slot>countPieces(bool)</slot>
   <slot>calculatePieces()</slot>
+  <slot>connectSerial()</slot>
  </slots>
 </ui>
