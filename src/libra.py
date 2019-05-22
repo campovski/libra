@@ -57,7 +57,7 @@ class Libra():
 
 
 	def __init__(self, port=None, baudrate=None, bytesize=None, parity=None, stopbits=None, xonxoff=None):
-		self.current_tare = "0.00"  # current tare setting
+		self.current_tare = 0.00  # current tare setting
 
 		self.stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
 		self.stabilization_time_start = None  # time of first UNSTABLE
@@ -65,7 +65,7 @@ class Libra():
 		self.count_results_row = 0  # Used for getting results of counting, either number of pieces in a row or at once present
 		self.count_results_once = 0
 		self.target = ""
-		
+
 		if port is not None:
 			try:
 				self.openSerial(port, baudrate, bytesize, parity, stopbits, xonxoff)
@@ -304,16 +304,8 @@ class Libra():
 		response = self.ser.read_until(serial.CR+serial.LF).decode("ascii").strip()
 		response_parts = response.split()
 		ret = False
-		if not zero and response_parts[1] == "S":
-			self.current_tare = response_parts[2]
-			ret = True
-		elif not zero:
-			print("[setTare] Could not set tare ...\nResponse was: '{}'".format(response))
-		elif zero and response_parts[1] == "A":
-			print("[setTare] Balance has been succesfully zeroed")
-			ret = True
-		else:
-			print("[setTare] Could not zero the balance ...\n Response was: '{}'".format(response))
+		self.current_tare -= float(response_parts[2])
+		ret = True
 		
 		# release mutex and continue with continuous weight reading
 		self.mutex.release()
