@@ -23,6 +23,8 @@ class Window(MainWindow):
 		t.start()
 		self.ports = []
 		self.findSerial()
+		self.libra.setTare(True)
+		self.updateEnvData()
 		# self.timer_display = QtCore.QTimer()
 		# QtCore.QObject.connect(self.timer_display, QtCore.SIGNAL('timeout()'), self.updateDisplay)
 
@@ -45,6 +47,8 @@ class Window(MainWindow):
 			self.status_2.setText(str(self.libra.stabilization_time))
 			self.count.setText(str(round(self.libra.count_results_once)))
 			self.count_2.setText(str(self.libra.count_results_row))
+			self.weight.setText(str(self.libra.target))
+			self.tara.setText(str(self.libra.current_tare))
 			time.sleep(0.05)
 
 	def setStatus(self,status):

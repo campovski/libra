@@ -432,42 +432,6 @@
      <string>1 komad</string>
     </property>
    </widget>
-   <widget class="QLabel" name="static_kalibracija">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>310</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>kalibracija</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="calibration">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>350</y>
-      <width>99</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PushButton</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="calibration_mass">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>340</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="refresh_env_data">
     <property name="geometry">
      <rect>

@@ -85,6 +85,7 @@ class Libra():
 		self.getEnvData()
 
 
+
 	def __str__(self):
 		print("Libra on port {0} with following configuration:\n\
                \tPORT = {1}\n\
@@ -249,7 +250,7 @@ class Libra():
 		else:
 			self.target = target_weight
 
-		print("[countObjectsAtOnce] Stable weight acquired, target weight is {0}".format(target))
+		print("[countObjectsAtOnce] Stable weight acquired, target weight is {0}".format(self.target))
 		print("[countObjectsAtOnce] Remove object and weight for stable zero ...")
 		while True:
 			m = self.queue_cont_read.get()
@@ -265,8 +266,8 @@ class Libra():
 				break
 
 		if weight is not None:
-			print("[countObjectsAtOnce] Counted {0} objects".format(weight/target))
-			self.count_results_once = weight / target
+			print("[countObjectsAtOnce] Counted {0} objects".format(weight/self.target))
+			self.count_results_once = weight / self.target
 		else:
 			print("[countObjectsAtOnce] Counting failed. Measured weight is None")
 			self.count_results_once = None
@@ -295,22 +296,19 @@ class Libra():
 				print(self.queue_cont_read.get())
 
 		# Our scale only supports tare on next stable weight.
-		if not zero:
-			self.ser.write(CMD_SET_TARE)
-		else:
-			self.ser.write(CMD_SET_ZERO)
+		self.ser.write(CMD_SET_TARE)
+
 
 		# Response is "T S value unit". If not "S", something went wrong.
 		response = self.ser.read_until(serial.CR+serial.LF).decode("ascii").strip()
 		response_parts = response.split()
-		ret = False
-		self.current_tare -= float(response_parts[2])
-		ret = True
-		
+		if not zero:
+			self.current_tare += float(response_parts[1])
+			print(self.current_tare)
+
 		# release mutex and continue with continuous weight reading
 		self.mutex.release()
 		self.startReadCont()
-		return ret
 
 	
 	def setZero(self):
