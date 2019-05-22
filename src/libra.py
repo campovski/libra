@@ -132,6 +132,7 @@ class Libra():
 
 
 	def startReadCont(self):
+		self.STOP_MAIN = False
 		assert self.ser is not None, "[startReadCont] Not connected to serial port"
 
 		if self.thread_cont_read is None:
@@ -166,7 +167,7 @@ class Libra():
 			if self.stabilization_time_start is None and str_read[1] == UNSTABLE:
 				self.stabilization_time = NAN
 				self.stabilization_time_start = now
-			elif str_read[1] == STABLE:
+			elif str_read[1] == STABLE and self.stabilization_time_start is not None:
 				timediff = now - self.stabilization_time_start
 				self.stabilization_time_start = None
 				self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
@@ -285,6 +286,8 @@ class Libra():
 		# signal to thread_read_cont to stop and acquire mutex
 		self.stopReadCont()
 		self.mutex.acquire()
+		while not self.queue_cont_read.empty():
+				print(self.queue_cont_read.get())
 
 		# Our scale only supports tare on next stable weight.
 		if not zero:
@@ -314,7 +317,7 @@ class Libra():
 
 	
 	def setZero(self):
-		return self.setTare(zero=False)
+		return self.setTare(0)
 
 
 	# TODO passes in weight for calibration
@@ -359,10 +362,13 @@ class Libra():
 	def stopReadCont(self):
 		self.STOP_MAIN = True
 		self.thread_cont_read.join()
+		# self.ser.write("@\r\n".encode("ascii"))
 		self.mutex.release()
 		caller = sys._getframe(1).f_code.co_name
 		print("[{0}] thread *read_cont* joined!".format(caller))
 		self.thread_cont_read = None
+
+
 
 
 if __name__ == "__main__":
