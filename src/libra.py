@@ -46,12 +46,13 @@ class Libra():
 	queue_special = None  # used for anything else
 	queue_writefile = None  # queue for writing data to file
 
-	current_tare = "0.00"  # current tare setting
+	self.current_tare = "0.00"  # current tare setting
 
-	stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
-	stabilization_time_start = None  # time of first UNSTABLE
+	self.stabilization_time = NAN  # time from first UNSTABLE to first STABLE, initially on 0
+	self.stabilization_time_start = None  # time of first UNSTABLE
 
-	count_results = None  # Used for getting results of counting, either number of pieces in a row or at once present
+	self.count_results_row = None  # Used for getting results of counting, either number of pieces in a row or at once present
+	self.count_results_once = None
 
 	env_data = None
 
@@ -189,9 +190,6 @@ class Libra():
 			print("[countApi] Unknown method ...")
 			return
 
-
-
-
 		self.thread_count.start()
 		# thread_count.join()
 		# print("[countApi] Thread joined.")
@@ -230,7 +228,7 @@ class Libra():
 				print("[countObjectsInRow] failed to write object:\n\t{}\nto file".format(str_filewrite))
 		f.close()
 
-		self.count_results = len(objects)
+		self.count_results_row = len(objects)
 
 
 	# THIS ONE IS NOT IN ITS OWN THREAD BECAUSE USER SHOULD STOP WEIGHTING MANUALLY!
@@ -265,10 +263,10 @@ class Libra():
 
 		if weight is not None:
 			print("[countObjectsAtOnce] Counted {0} objects".format(weight/target))
-			self.count_results = weight / target
+			self.count_results_once = weight / target
 		else:
 			print("[countObjectsAtOnce] Counting failed. Measured weight is None")
-			self.count_results = None
+			self.count_results_once = None
 
 
 	# Write to file on new stable weight != 0.
