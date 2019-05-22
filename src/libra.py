@@ -171,7 +171,7 @@ class Libra():
 				timediff = now - self.stabilization_time_start
 				self.stabilization_time_start = None
 				self.stabilization_time = timediff.seconds + round(timediff.microseconds/10**6, 3)
-				self.queue_writefile.put(str_read+[self.stabilization_time])
+				self.queue_writefile.put(str_read+[self.stabilization_time]+self.env_data)
 
 
 	def countApi(self, method):
