@@ -53,6 +53,8 @@ class Libra():
 
 	count_results = None  # Used for getting results of counting, either number of pieces in a row or at once present
 
+	env_data = None
+
 	# Custom signals
 	STOP_COUNTING = False
 	STOP_MAIN = False
@@ -74,6 +76,8 @@ class Libra():
 			name="writefile",
 			daemon=True
 		)
+
+		self.getEnvData()
 
 
 	def __str__(self):
@@ -98,6 +102,8 @@ class Libra():
 
 		i = data.text.find(t)
 		env_data["temperature"] = data.text[i + len(t):i + len(t) + 2] + " °C"
+
+		self.env_data = env_data
 
 		return env_data
 
