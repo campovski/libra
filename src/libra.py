@@ -33,7 +33,6 @@ NAN = float("nan")
 COUNT_ROW = "in_row"
 COUNT_ONCE = "once"
 
-
 class Libra():
 
 	ser = None  # serial to communicate with libra
@@ -64,12 +63,14 @@ class Libra():
 		self.count_results_row = 0  # Used for getting results of counting, either number of pieces in a row or at once present
 		self.count_results_once = 0
 		self.target = ""
+		self.all_file = ALL_FILE
+		self.queue_stdout = queue.Queue()
 
 		if port is not None:
 			try:
 				self.openSerial(port, baudrate, bytesize, parity, stopbits, xonxoff)
 			except:
-				print("Serial port error")
+				self.queue_stdout.put("Serial port error")
 
 		self.queue_cont_read = queue.Queue()
 		self.queue_backup = queue.Queue()
@@ -85,7 +86,7 @@ class Libra():
 
 
 	def __str__(self):
-		print("Libra on port {0} with following configuration:\n\
+		self.queue_stdout.put("Libra on port {0} with following configuration:\n\
                \tPORT = {1}\n\
                \tBAUDRATE = {2}\n\
                \tBYTESIZE = {3}\n\
@@ -113,7 +114,7 @@ class Libra():
 
 
 	def __str__(self):
-		print("Libra on port {0} with following configuration:\n\
+		self.queue_stdout.put("Libra on port {0} with following configuration:\n\
                \tPORT = {1}\n\
                \tBAUDRATE = {2}\n\
                \tBYTESIZE = {3}\n\
@@ -150,7 +151,7 @@ class Libra():
 
 		self.mutex.acquire()
 		self.thread_cont_read.start()  # when killing this process, release lock
-		print("thread_cont_read started!")
+		self.queue_stdout.put("thread_cont_read started!")
 
 
 	def processRead(self, string):
@@ -183,28 +184,28 @@ class Libra():
 	def countApi(self, method,stop=False,target=None):
 		self.thread_count_stop = stop
 		if stop:
-			print("[countApi] exit")
+			self.queue_stdout.put("[countApi] exit")
 			return
-		print("[countApi] Starting thread with method " + method)
+		self.queue_stdout.put("[countApi] Starting thread with method " + method)
 		if method == COUNT_ROW:
 			self.thread_count = threading.Thread(target=self.countObjectsInRow,	name="countAPI", daemon=True)
 		elif method == COUNT_ONCE:
 			self.thread_count = threading.Thread(target=self.countObjectsAtOnce, name="countAPI", daemon=True, args=[target])
 		else:
-			print("[countApi] Unknown method ...")
+			self.queue_stdout.put("[countApi] Unknown method ...")
 			return
 
 		self.thread_count.start()
 
 
 	def countObjectsInRow(self):
-		print("[countObjectsInRow] Waiting for stable zero ...")
+		self.queue_stdout.put("[countObjectsInRow] Waiting for stable zero ...")
 		while not self.thread_count_stop:
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and float(m[2]) < 0.1:
 				break
 
-		print("[countObjectsInRow] Stable zero acquired, start weighting ...")
+		self.queue_stdout.put("[countObjectsInRow] Stable zero acquired, start weighting ...")
 		objects = []
 		new = False
 		while not self.thread_count_stop:
@@ -214,7 +215,7 @@ class Libra():
 			if m[1] == STABLE and new and float(m[2]) > 0.1:
 				new = False
 				objects.append(m)
-				print('beep')
+				self.queue_stdout.put('beep')
 			elif m[1] == UNSTABLE:
 				new = True
 
@@ -227,7 +228,7 @@ class Libra():
 		for obj in objects:
 			str_filewrite = id_counting + "," + ",".join(obj) + "\n"
 			if f.write(str_filewrite) != len(str_filewrite):
-				print("[countObjectsInRow] failed to write object:\n\t{}\nto file".format(str_filewrite))
+				self.queue_stdout.put("[countObjectsInRow] failed to write object:\n\t{}\nto file".format(str_filewrite))
 		f.close()
 
 		self.count_results_row = len(objects)
@@ -236,7 +237,7 @@ class Libra():
 	def countObjectsAtOnce(self, target_weight=None):
 		self.target = None
 		if target_weight is None:  # we need to get stable weight of an object unless it was already supplied
-			print("[countObjectsAtOnce] Waiting for stable weight ...")
+			self.queue_stdout.put("[countObjectsAtOnce] Waiting for stable weight ...")
 			while True:
 				m = self.queue_cont_read.get()
 				if m[1] == STABLE and float(m[2]) > 0.1:
@@ -245,13 +246,13 @@ class Libra():
 		else:
 			self.target = target_weight
 
-		print("[countObjectsAtOnce] Stable weight acquired, target weight is {0}".format(self.target))
-		print("[countObjectsAtOnce] Remove object and weight for stable zero ...")
+		self.queue_stdout.put("[countObjectsAtOnce] Stable weight acquired, target weight is {0}".format(self.target))
+		self.queue_stdout.put("[countObjectsAtOnce] Remove object and weight for stable zero ...")
 		while True:
 			m = self.queue_cont_read.get()
 			if m[1] == STABLE and float(m[2]) < 0.1:
 				break
-		print("[countObjectsAtOnce] Stable zero acquired. Put objects on weight")
+		self.queue_stdout.put("[countObjectsAtOnce] Stable zero acquired. Put objects on weight")
 		# weight will now become UNSTABLE due to change of pieces on scale
 		weight = None
 		while True:
@@ -261,24 +262,24 @@ class Libra():
 				break
 
 		if weight is not None:
-			print("[countObjectsAtOnce] Counted {0} objects".format(weight/self.target))
+			self.queue_stdout.put("[countObjectsAtOnce] Counted {0} objects".format(weight/self.target))
 			self.count_results_once = weight / self.target
 		else:
-			print("[countObjectsAtOnce] Counting failed. Measured weight is None")
+			self.queue_stdout.put("[countObjectsAtOnce] Counting failed. Measured weight is None")
 			self.count_results_once = None
 
 
 	# Write to file on new stable weight.
 	def writefile(self):
 		while True:
-			f = open(ALL_FILE, "a+")
+			f = open(self.all_file, "a+")
 			if self.STOP_WRITE:
 				break
 			m = self.queue_writefile.get()
-			print(m)
+			self.queue_stdout.put(m)
 			str_filewrite = ",".join(m) + "\n"
 			if f.write(str_filewrite) != len(str_filewrite):
-				print("[writefile] error writing to file")
+				self.queue_stdout.put("[writefile] error writing to file")
 			f.close()
 
 
@@ -288,7 +289,7 @@ class Libra():
 		self.stopReadCont()
 		self.mutex.acquire()
 		while not self.queue_cont_read.empty():
-				print(self.queue_cont_read.get())
+				self.queue_stdout.put(self.queue_cont_read.get())
 
 		# Our scale only supports tare on next stable weight.
 		self.ser.write(CMD_SET_TARE)
@@ -299,7 +300,7 @@ class Libra():
 		response_parts = response.split()
 		if not zero:
 			self.current_tare += float(response_parts[1])
-			print(self.current_tare)
+			self.queue_stdout.put(self.current_tare)
 
 		# release mutex and continue with continuous weight reading
 		self.mutex.release()
@@ -316,7 +317,7 @@ class Libra():
 		self.STOP_WRITE = True
 		self.thread_writefile.join()
 		caller = sys._getframe(1).f_code.co_name
-		print("[{0}] thread *writefile* joined!".format(caller))
+		self.queue_stdout.put("[{0}] thread *writefile* joined!".format(caller))
 		self.thread_writefile = None
 
 
@@ -327,7 +328,7 @@ class Libra():
 		# self.ser.write("@\r\n".encode("ascii"))
 		self.mutex.release()
 		caller = sys._getframe(1).f_code.co_name
-		print("[{0}] thread *read_cont* joined!".format(caller))
+		self.queue_stdout.put("[{0}] thread *read_cont* joined!".format(caller))
 		self.thread_cont_read = None
 
 

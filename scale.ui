@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1102</width>
-    <height>916</height>
+    <width>850</width>
+    <height>752</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Tehtnica</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLCDNumber" name="mass">
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>60</y>
+      <y>50</y>
       <width>201</width>
       <height>41</height>
      </rect>
@@ -29,25 +29,28 @@
     <property name="digitCount">
      <number>7</number>
     </property>
+    <property name="value" stdset="0">
+     <double>162.629999999999995</double>
+    </property>
    </widget>
    <widget class="QLabel" name="static_teza">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>70</y>
+      <y>60</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Teza</string>
+     <string>Teza:</string>
     </property>
    </widget>
    <widget class="QLabel" name="unit">
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>80</y>
+      <y>70</y>
       <width>68</width>
       <height>17</height>
      </rect>
@@ -59,8 +62,8 @@
    <widget class="QPushButton" name="save">
     <property name="geometry">
      <rect>
-      <x>220</x>
-      <y>750</y>
+      <x>670</x>
+      <y>520</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -72,8 +75,8 @@
    <widget class="QComboBox" name="serial_port">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>90</y>
+      <x>530</x>
+      <y>210</y>
       <width>131</width>
       <height>27</height>
      </rect>
@@ -87,8 +90,8 @@
    <widget class="QComboBox" name="serial_boud">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>130</y>
+      <x>530</x>
+      <y>250</y>
       <width>131</width>
       <height>27</height>
      </rect>
@@ -132,8 +135,8 @@
    <widget class="QPushButton" name="serial_connect">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>170</y>
+      <x>530</x>
+      <y>290</y>
       <width>131</width>
       <height>27</height>
      </rect>
@@ -145,17 +148,23 @@
    <widget class="QLineEdit" name="tara">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>220</y>
       <width>121</width>
       <height>41</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;trenutna tara&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="text">
+     <string>30</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="set_to_zero">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>170</x>
       <y>230</y>
       <width>99</width>
       <height>27</height>
@@ -170,35 +179,47 @@
      <rect>
       <x>20</x>
       <y>20</y>
-      <width>68</width>
+      <width>121</width>
       <height>17</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>Status</string>
+     <string>Status tehtnice:</string>
     </property>
    </widget>
    <widget class="QLabel" name="status">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>140</x>
       <y>20</y>
-      <width>68</width>
+      <width>31</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>S</string>
     </property>
    </widget>
    <widget class="QLabel" name="static_tara">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>200</y>
+      <x>20</x>
+      <y>190</y>
       <width>68</width>
       <height>17</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>Tara</string>
@@ -207,21 +228,27 @@
    <widget class="QLabel" name="static_serial">
     <property name="geometry">
      <rect>
-      <x>840</x>
-      <y>50</y>
-      <width>68</width>
+      <x>530</x>
+      <y>180</y>
+      <width>101</width>
       <height>17</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>Serial</string>
+     <string>Serial port</string>
     </property>
    </widget>
    <widget class="QLabel" name="static_save">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>760</y>
+      <x>500</x>
+      <y>530</y>
       <width>131</width>
       <height>17</height>
      </rect>
@@ -230,50 +257,20 @@
      <string>Shrani v datoteko:</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="command">
-    <property name="geometry">
-     <rect>
-      <x>850</x>
-      <y>320</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="send_command">
-    <property name="geometry">
-     <rect>
-      <x>870</x>
-      <y>380</y>
-      <width>99</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Send</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="static_ukaz">
-    <property name="geometry">
-     <rect>
-      <x>880</x>
-      <y>290</y>
-      <width>68</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Pošli ukaz</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="static_env">
     <property name="geometry">
      <rect>
-      <x>490</x>
-      <y>10</y>
+      <x>530</x>
+      <y>20</y>
       <width>201</width>
       <height>17</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>Okoljski podatki</string>
@@ -282,21 +279,21 @@
    <widget class="QLabel" name="static_tlak">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>50</y>
+      <x>530</x>
+      <y>60</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Tlak</string>
+     <string>Tlak:</string>
     </property>
    </widget>
    <widget class="QLabel" name="tlak">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>50</y>
+      <x>590</x>
+      <y>60</y>
       <width>68</width>
       <height>17</height>
      </rect>
@@ -308,21 +305,21 @@
    <widget class="QLabel" name="static_temp">
     <property name="geometry">
      <rect>
-      <x>590</x>
-      <y>50</y>
+      <x>680</x>
+      <y>60</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>temp</string>
+     <string>Temp:</string>
     </property>
    </widget>
    <widget class="QLabel" name="temp">
     <property name="geometry">
      <rect>
-      <x>670</x>
-      <y>50</y>
+      <x>740</x>
+      <y>60</y>
       <width>68</width>
       <height>17</height>
      </rect>
@@ -334,21 +331,21 @@
    <widget class="QLabel" name="static_humidity">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>80</y>
+      <x>530</x>
+      <y>90</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>vlaga</string>
+     <string>Vlaga:</string>
     </property>
    </widget>
    <widget class="QLabel" name="humidity">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>80</y>
+      <x>590</x>
+      <y>90</y>
       <width>68</width>
       <height>17</height>
      </rect>
@@ -360,47 +357,53 @@
    <widget class="QLabel" name="static_multiple">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>470</y>
-      <width>68</width>
+      <x>20</x>
+      <y>310</y>
+      <width>171</width>
       <height>17</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>multiple</string>
+     <string>Štetje predmetov</string>
     </property>
    </widget>
    <widget class="QLabel" name="static_stevilo">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>510</y>
+      <x>20</x>
+      <y>340</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>stevilo</string>
+     <string>Število:</string>
     </property>
    </widget>
    <widget class="QLabel" name="count">
     <property name="geometry">
      <rect>
-      <x>100</x>
-      <y>510</y>
+      <x>80</x>
+      <y>340</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>5</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="weight">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>500</y>
+      <x>110</x>
+      <y>370</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -409,24 +412,30 @@
    <widget class="QLabel" name="static_teza_enega">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>510</y>
+      <x>20</x>
+      <y>380</y>
       <width>81</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>teza enega</string>
+     <string>Teža enega:</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_6">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>510</y>
+      <x>250</x>
+      <y>380</y>
       <width>99</width>
       <height>27</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pritisni za tehtanje enega predmeta, ali pa vnesi težo&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="whatsThis">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>1 komad</string>
@@ -435,8 +444,8 @@
    <widget class="QPushButton" name="refresh_env_data">
     <property name="geometry">
      <rect>
-      <x>640</x>
-      <y>80</y>
+      <x>720</x>
+      <y>90</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -445,47 +454,37 @@
      <string>refresh</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="return_data">
-    <property name="geometry">
-     <rect>
-      <x>740</x>
-      <y>440</y>
-      <width>221</width>
-      <height>41</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="static_teza_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>130</y>
+      <x>20</x>
+      <y>110</y>
       <width>91</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Odzivni čas</string>
+     <string>Odzivni čas:</string>
     </property>
    </widget>
    <widget class="QLabel" name="status_2">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>130</y>
+      <x>140</x>
+      <y>110</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>5</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_7">
     <property name="geometry">
      <rect>
       <x>190</x>
-      <y>650</y>
+      <y>530</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -500,61 +499,83 @@
    <widget class="QLabel" name="static_multiple_2">
     <property name="geometry">
      <rect>
-      <x>110</x>
-      <y>610</y>
-      <width>68</width>
+      <x>20</x>
+      <y>490</y>
+      <width>231</width>
       <height>17</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>stetje</string>
+     <string>Tehtanje večih predmetov</string>
     </property>
    </widget>
    <widget class="QLabel" name="static_stevilo_2">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>650</y>
+      <y>530</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>stevilo</string>
+     <string>število:</string>
     </property>
    </widget>
    <widget class="QLabel" name="count_2">
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>650</y>
+      <y>530</y>
       <width>68</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>3</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="serial_port_2">
+   <widget class="QTextBrowser" name="textBrowser">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>330</y>
-      <width>85</width>
-      <height>27</height>
+      <x>20</x>
+      <y>620</y>
+      <width>791</width>
+      <height>71</height>
      </rect>
     </property>
-    <item>
-     <property name="text">
-      <string>SI</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>SIR</string>
-     </property>
-    </item>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="static_multiple_3">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>600</y>
+      <width>231</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Event log</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -562,7 +583,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1102</width>
+     <width>850</width>
      <height>25</height>
     </rect>
    </property>
@@ -578,8 +599,8 @@
    <slot>updateEnvData()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>690</x>
-     <y>128</y>
+     <x>1010</x>
+     <y>141</y>
     </hint>
     <hint type="destinationlabel">
      <x>722</x>
@@ -594,12 +615,12 @@
    <slot>saveToFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>318</x>
-     <y>801</y>
+     <x>1028</x>
+     <y>621</y>
     </hint>
     <hint type="destinationlabel">
      <x>704</x>
-     <y>841</y>
+     <y>697</y>
     </hint>
    </hints>
   </connection>
@@ -620,30 +641,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>send_command</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>sendCommand()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>881</x>
-     <y>414</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>987</x>
-     <y>447</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>pushButton_7</sender>
    <signal>clicked(bool)</signal>
    <receiver>MainWindow</receiver>
    <slot>countPieces(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>223</x>
-     <y>695</y>
+     <x>243</x>
+     <y>601</y>
     </hint>
     <hint type="destinationlabel">
      <x>372</x>
@@ -658,8 +663,8 @@
    <slot>calculatePieces()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>468</x>
-     <y>545</y>
+     <x>328</x>
+     <y>451</y>
     </hint>
     <hint type="destinationlabel">
      <x>526</x>
@@ -675,7 +680,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>894</x>
-     <y>210</y>
+     <y>391</y>
     </hint>
     <hint type="destinationlabel">
      <x>1025</x>
@@ -691,7 +696,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>903</x>
-     <y>122</y>
+     <y>311</y>
     </hint>
     <hint type="destinationlabel">
      <x>994</x>

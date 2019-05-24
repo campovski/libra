@@ -23,7 +23,11 @@ class Window(MainWindow):
 		t.start()
 		self.ports = []
 		self.findSerial()
-		self.libra.setTare(True)
+		try:
+			self.libra.setTare(True)
+		except:
+			print("not zero")
+
 		self.updateEnvData()
 		# self.timer_display = QtCore.QTimer()
 		# QtCore.QObject.connect(self.timer_display, QtCore.SIGNAL('timeout()'), self.updateDisplay)
@@ -49,7 +53,10 @@ class Window(MainWindow):
 			self.count_2.setText(str(self.libra.count_results_row))
 			self.weight.setText(str(self.libra.target))
 			self.tara.setText(str(self.libra.current_tare))
+			if not self.libra.queue_stdout.empty():
+				self.textBrowser.append(self.libra.queue_stdout.get())
 			time.sleep(0.05)
+
 
 	def setStatus(self,status):
 		self.status.setText(status)
@@ -62,7 +69,8 @@ class Window(MainWindow):
 				self.ports.append(p.device)
 
 	def connectSerial(self):
-		pass
+		print(self.serial_port.currentText())
+		self.libra.openSerial(port=self.serial_port.currentText(), baudrate=self.serial_boud.currentText(), bytesize=serial.SEVENBITS, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE, xonxoff=True)
 
 	def sendCommand(self):
 		cmd = str(self.command.text())
@@ -92,7 +100,7 @@ class Window(MainWindow):
 		w.resize(320, 240)
 		w.setWindowTitle("Hello World!")
 
-		self.filename = QtGui.QFileDialog.getSaveFileName(w, 'Save File', 'podatki.csv')
+		self.libra.all_file = QtGui.QFileDialog.getSaveFileName(w, 'Save File', 'podatki.csv')
 
 	def calculatePieces(self):
 		try:
